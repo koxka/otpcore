@@ -1,0 +1,224 @@
+openapi: 3.0.1
+info:
+  title: "Ticket Module contract"
+  version: 1.0.1
+servers:
+  - url: /ticket-api/v1
+security:
+  - basicAuth: []
+tags:
+  - name: Events
+paths:
+  /events:
+    get:
+      tags:
+        - Events
+      operationId: getEvents
+      summary: getEvents
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/token'
+      responses:
+        200:
+          $ref: '#/components/responses/EventsResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+  /event/{event-id}:
+    get:
+      tags:
+        - Events
+      operationId: getEvent
+      summary: getEvent
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/token'
+        - name: event-id
+          description: event id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          $ref: '#/components/responses/EventDetailsResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+  /event/{event-id}/detailed:
+    get:
+      tags:
+        - Events
+      operationId: getDetailedEvent
+      summary: getDetailedEvent
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/token'
+        - name: event-id
+          description: event id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          $ref: '#/components/responses/DeatiledEventDetailsResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+  /reserve:
+    post:
+      tags:
+        - Events
+      operationId: reserve
+      summary: reserve
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/ReserveResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+    x-codegen-request-body-name: body
+components:
+  parameters:
+    userId:
+      name: X-Otp-Auth-User-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    token:
+      name: X-Otp-Auth-Token
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    DeatiledEventDetailsResponse:
+      description: DetailedEventDetails Response
+      content:
+        application/json:
+          schema:
+            title: DetailedEventDetails Response
+            type: object
+            properties:
+              event:
+                $ref: '#/components/schemas/Event'
+              seats:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Seat'
+              info:
+                $ref: '#/components/schemas/Info'
+    ReserveResponse:
+      description: Reservation Response
+      content:
+        application/json:
+          schema:
+            title: Reservation Response
+            type: object
+            properties:
+              reservationId:
+                type: string
+              info:
+                $ref: '#/components/schemas/Info'
+    EventDetailsResponse:
+      description: Event Details Response
+      content:
+        application/json:
+          schema:
+            title: Events Details Response
+            type: object
+            properties:
+              seats:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Seat'
+              info:
+                $ref: '#/components/schemas/Info'
+    EventsResponse:
+      description: Event Query Response
+      content:
+        application/json:
+          schema:
+            title: Events Response
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+              info:
+                $ref: '#/components/schemas/Info'
+    InternalServerErrorResponse:
+      description: Error Response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Info'
+  schemas:
+    Info:
+      required:
+        - success
+        - state
+      type: object
+      properties:
+        success:
+          type: boolean
+        state:
+          $ref: '#/components/schemas/State'
+    State:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int64
+        reason:
+          type: string
+    ReservationRequest:
+      required:
+        - eventId
+        - seatId
+        - cardId
+      type: object
+      properties:
+        eventId:
+          type: number
+        seatId:
+          type: string
+        cardId:
+          type: string
+    Seat:
+      type: object
+      properties:
+        id:
+          type: string
+        currency:
+          type: string
+        price:
+          type: number
+        reserved:
+          type: boolean
+    Event:
+      type: object
+      properties:
+        eventId:
+          type: number
+        title:
+          type: string
+        location:
+          type: string
+        startTimeStamp:
+          type: string
+          format: date-time
+        endTimeStamp:
+          type: string
+          format: date-time
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic

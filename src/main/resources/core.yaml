@@ -1,0 +1,139 @@
+openapi: 3.0.1
+info:
+  title: "Core Module contract"
+  version: 1.0.1
+servers:
+  - url: /core-api/v1
+security:
+  - basicAuth: []
+tags:
+  - name: Otp Core
+paths:
+  /authenticate:
+    get:
+      tags:
+        - Otp Core
+      operationId: isAuthenticated
+      summary: isAuthenticated
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/token'
+      responses:
+        200:
+          $ref: '#/components/responses/GeneralSuccessResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+  /charge:
+    post:
+      tags:
+        - Otp Core
+      operationId: charge
+      summary: charge
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/ChargeResponse'
+        403:
+          $ref: '#/components/responses/UnauthorizedResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+components:
+  parameters:
+    userId:
+      name: X-Otp-Auth-User-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    token:
+      name: X-Otp-Auth-Token
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    ChargeResponse:
+      description: Charge Response
+      content:
+        application/json:
+          schema:
+            title: Charge Response
+            type: object
+            properties:
+              reservationId:
+                type: string
+              info:
+                $ref: '#/components/schemas/Info'
+    GeneralSuccessResponse:
+      description: General Success Response
+      content:
+        application/json:
+          schema:
+            title: General Success Response
+            type: object
+            properties:
+              info:
+                $ref: '#/components/schemas/Info'
+    UnauthorizedResponse:
+      description: Unauthorized Response
+      content:
+        application/json:
+          schema:
+            title: Unauthorized Response
+            type: object
+            properties:
+              reason:
+                type: string
+    InternalServerErrorResponse:
+      description: Internal Server Error Response
+      content:
+        application/json:
+          schema:
+            title: Internal Server Error Response
+            type: object
+            properties:
+              error:
+                $ref: '#/components/schemas/Info'
+  schemas:
+    Info:
+      required:
+        - success
+        - state
+      type: object
+      properties:
+        success:
+          type: boolean
+        state:
+          $ref: '#/components/schemas/State'
+    State:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int64
+        reason:
+          type: string
+    ChargeRequest:
+      required:
+        - eventId
+        - seatId
+        - cardId
+      type: object
+      properties:
+        eventId:
+          type: number
+        seatId:
+          type: string
+        cardId:
+          type: string
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
